@@ -1,6 +1,5 @@
 import jieba
 import math
-import time
 import re
 import sys
 import argparse
@@ -8,21 +7,18 @@ from jieba import analyse
 from gensim import corpora, models, similarities
 
 # 全局变量
-time_start = 0
-time_end = 0
-time_last = 0  # 测试运行时间
-total_size = 0  # 文章总长度
 ans = 0
+total_size = 0  # 文章总长度
 sim_value = []  # 记录相似值
 word_lenth = []  # 记录每句长度
-origin_txt = []
-origin_add_txt = []
+origin_txt = []  # 初始文章分句
+origin_add_txt = []  # 相似文章分句
 
 
 # 将文章进行拆分成句子
 def Split_sentence(file_txt):
     head = '\u4e00'
-    tail = '\u9fff'
+    tail = '\u9fa5'
     word = ""
     sentence_list = []  # 保存拆分的句子
     for each in range(len(file_txt)):
@@ -40,35 +36,7 @@ def Split_sentence(file_txt):
 
     return sentence_list
 
-
-if __name__ == '__main__':
-    time_start = time.time()
-
-    # sys.argv[1] 论文原文的文件的绝对路径
-    # sys.argv[2] 抄袭版论文的文件的绝对路径
-    # sys.argv[3] 输出的答案文件的绝对路径
-
-    # 读入初始文件
-    file = open(sys.argv[1], 'r', encoding='UTF-8')
-    origin_file = file.read()
-    file.close()
-    origin_txt = Split_sentence(origin_file)  # 初始文件分句
-
-
-    # 读入相似文件
-    file = open(sys.argv[2], 'r', encoding='UTF-8')
-    origin_add_file = file.read()
-    file.close()
-    origin_add_txt = Split_sentence(origin_add_file)  # 相似文件分句
-
-    # 计算每句相似度 以及 每句长度
-    # 利用jieba.luct进行分词 保存在list列表中
-    ori_list = [[word for word in jieba.lcut(sentence)] for sentence in origin_txt]
-    # print(ori_list)
-
-    ori_add_list = [[word for word in jieba.lcut(sentence)] for sentence in origin_add_txt]
-    # print(ori_add_list)
-
+def Similiarity():
     # 生成词典
     dictionary = corpora.Dictionary(ori_list)
 
@@ -86,6 +54,7 @@ if __name__ == '__main__':
 
     # 每句长度-单个变量
     word_size = 0
+    size = 0
     sim = 0
     for word in range(len(ori_add_list)):
         # 新的稀疏向量
@@ -98,13 +67,56 @@ if __name__ == '__main__':
         sim_value.append(sim)
         # 相似文章每句长度值
         word_size = len(ori_add_list[word])
-        # 总长度值
-        total_size += word_size
+        # 文章总长度值
+        size += word_size
         # 加入长度列表
         word_lenth.append(word_size)
 
+    return size
+
+# 读入初始文件
+def Read_txt(command):
+    file = open(command, 'r', encoding='UTF-8')
+    origin_file = file.read()
+    file.close()
+    origin = Split_sentence(origin_file)  # 初始文件分句
+    return origin
+
+    # 读入相似文件
+def Read_add_txt(command):
+    file = open(command, 'r', encoding='UTF-8')
+    origin_add_file = file.read()
+    file.close()
+    origin_add = Split_sentence(origin_add_file)  # 相似文件分句
+    return origin_add
+
+if __name__ == '__main__':
+    time_start = time.time()
+
+    # sys.argv[1] 论文原文的文件的绝对路径
+    # sys.argv[2] 抄袭版论文的文件的绝对路径
+    # sys.argv[3] 输出的答案文件的绝对路径
+
+    # 读入初始文件
+    command = sys.argv[1]
+    origin_txt = Read_txt(command)
+
+    # 读入相似文件
+    command = sys.argv[2]
+    origin_add_txt = Read_add_txt(command)
+
+    # 计算每句相似度 以及 每句长度
+    # 利用jieba.luct进行分词 保存在list列表中
+    ori_list = [[word for word in jieba.lcut(sentence)] for sentence in origin_txt]
+    # print(ori_list)
+
+    ori_add_list = [[word for word in jieba.lcut(sentence)] for sentence in origin_add_txt]
+    # print(ori_add_list)
+
+    total_size =  Similiarity()
     total_sum = 0
-    for i in range(0, len(word_lenth)):
+
+    for i in range(len(word_lenth)):
         total_sum += word_lenth[i] * sim_value[i]
 
     # 加权求平均
@@ -118,6 +130,3 @@ if __name__ == '__main__':
     file.write(ans)
     file.close()
 
-    time_end = time.time()
-    time_last = time_end - time_start
-    # print(time_last)
