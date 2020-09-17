@@ -6,6 +6,10 @@ import argparse
 from jieba import analyse
 from gensim import corpora, models, similarities
 
+class NoWord(Exception):
+    def __init__(self):
+        print("该文件是空文本")
+
 # 全局变量
 time_start = 0
 time_end = 0
@@ -110,6 +114,15 @@ if __name__ == '__main__':
     #command = input()
     origin_add_txt = Read_add_txt(command)
 
+    # 异常检测
+    if origin_txt == '':
+        print("error:")
+        raise NoWord
+
+    if origin_add_txt == '':
+        print("error:")
+        raise NoWord
+
     # 计算每句相似度 以及 每句长度
     # 利用jieba.luct进行分词 保存在list列表中
     ori_list = [[word for word in jieba.lcut(sentence)] for sentence in origin_txt]
@@ -137,4 +150,3 @@ if __name__ == '__main__':
 
     time_end = time.time()
     time_last = time_end - time_start
-    # print(time_last)
