@@ -1,18 +1,21 @@
+#-*-codeing = utf-8 -*-
 import jieba
-import math
-import re
+import time
 import sys
 import argparse
 from jieba import analyse
 from gensim import corpora, models, similarities
 
 # 全局变量
-ans = 0
+time_start = 0
+time_end = 0
+time_last = 0  # 测试运行时间
 total_size = 0  # 文章总长度
+ans = 0
 sim_value = []  # 记录相似值
 word_lenth = []  # 记录每句长度
-origin_txt = []  # 初始文章分句
-origin_add_txt = []  # 相似文章分句
+origin_txt = []
+origin_add_txt = []
 
 
 # 将文章进行拆分成句子
@@ -99,10 +102,12 @@ if __name__ == '__main__':
 
     # 读入初始文件
     command = sys.argv[1]
+    #command = input()
     origin_txt = Read_txt(command)
 
     # 读入相似文件
     command = sys.argv[2]
+    #command = input()
     origin_add_txt = Read_add_txt(command)
 
     # 计算每句相似度 以及 每句长度
@@ -113,7 +118,7 @@ if __name__ == '__main__':
     ori_add_list = [[word for word in jieba.lcut(sentence)] for sentence in origin_add_txt]
     # print(ori_add_list)
 
-    total_size =  Similiarity()
+    total_size = Similiarity()
     total_sum = 0
 
     for i in range(len(word_lenth)):
@@ -130,3 +135,6 @@ if __name__ == '__main__':
     file.write(ans)
     file.close()
 
+    time_end = time.time()
+    time_last = time_end - time_start
+    # print(time_last)
